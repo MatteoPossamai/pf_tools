@@ -15,6 +15,7 @@ merged["date"] = pd.to_datetime(merged["date"])
 merged = merged.sort_values(by="date", ignore_index=True)
 merged = merged.drop(columns=["id"])
 merged["issuer"] = merged["issuer"].replace(corrections)
+merged["date"] = merged["date"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 merged.to_csv(merged_path, index=False)
 
 print("Merged and sorted data:")

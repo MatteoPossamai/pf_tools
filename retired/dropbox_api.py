@@ -1,11 +1,19 @@
+"""
+Utilities for dropbox API, for storing in the webhook based service, that was aborted.
+"""
+
 import dropbox
 import dropbox.base
 import pandas as pd
 from io import BytesIO
 
-from constants import ACCESS_TOKEN, TRANSACTIONS_FILE_PATH, APP_KEY, APP_SECRET
+from constants import (
+    DROPBOX_ACCESS_TOKEN,
+    DROPBOX_APP_KEY,
+    DROPBOX_APP_SECRET,
+)
 
-dbx = dropbox.Dropbox(ACCESS_TOKEN, app_key=APP_KEY, app_secret=APP_SECRET)
+dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN, app_key=DROPBOX_APP_KEY, app_secret=DROPBOX_APP_SECRET)
 
 
 def dropbox_to_pandas(dbx: dropbox.Dropbox, path: str) -> pd.DataFrame:
@@ -22,7 +30,3 @@ def pandas_to_dropbox(dbx: dropbox.Dropbox, dataframe: pd.DataFrame, path: str) 
     output.seek(0)
     dbx.files_upload(output.read(), path, mode=dropbox.base.files.WriteMode.overwrite)
     return True
-
-
-if __name__ == "__main__":
-    print(dropbox_to_pandas(dbx, TRANSACTIONS_FILE_PATH))

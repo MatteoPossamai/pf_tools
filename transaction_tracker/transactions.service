@@ -1,0 +1,11 @@
+[Unit]
+Description=Transactions getter
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/matteopossamai/Desktop/pf_tools/transaction_tracker/transactions.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
