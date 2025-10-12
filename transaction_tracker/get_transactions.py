@@ -2,13 +2,13 @@ from datetime import datetime, timedelta, timezone
 import csv
 import requests
 
-from constants import (
-    MONZO_API_URL,
-    MONZO_ACCESS_TOKEN,
-    MONZO_ACCOUNT_ID,
-    MONZO_API_TRANSACTION_ENDPOINT,
+from token_backend import (
+    TOKEN_FILE,
     TRANSACTIONS_FILE_PATH,
+    MONZO_API_TRANSACTION_ENDPOINT,
+    MONZO_API_URL,
 )
+from token_manager import TokenManager
 
 
 def get_latest_date(path: str) -> str:
@@ -33,15 +33,20 @@ def plus_one_second(datetime_info: str) -> str:
 
 
 def get_transactions_after(
+    token_manager: TokenManager,
     datetime_info: str,
 ) -> list:
-    headers = {"Authorization": f"Bearer {MONZO_ACCESS_TOKEN}"}
-    params = {"account_id": MONZO_ACCOUNT_ID, "since": datetime_info}
+    access_token = token_manager.monzo_data.access_token
+    account_id = token_manager.monzo_data.account_id
+    headers = {"Authorization": f"Bearer {access_token}"}
+    params = {"account_id": account_id, "since": datetime_info}
     response = requests.get(
         f"{MONZO_API_URL}/{MONZO_API_TRANSACTION_ENDPOINT}", headers=headers, params=params
     )
     if response.status_code != 200:
-        raise Exception(f"Unable to query endpoint, getting {response.status_code}")
+        raise Exception(
+            f"Unable to query endpoint, getting: {response.status_code} \n{response.text}"
+        )
 
     data: dict = response.json()
     if len(data.keys()) > 0:
@@ -72,7 +77,8 @@ def serialize_and_write(transactions: list, path: str):
 
 def update_with_latest_trades(path: str):
     datetime_from = plus_one_second(get_latest_date(path))
-    transactions = get_transactions_after(datetime_from)
+    token_manager = TokenManager(TOKEN_FILE)
+    transactions = get_transactions_after(token_manager, datetime_from)
     serialize_and_write(transactions, path)
 
 
