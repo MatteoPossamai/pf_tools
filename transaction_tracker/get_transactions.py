@@ -36,23 +36,32 @@ def get_transactions_after(
     token_manager: TokenManager,
     datetime_info: str,
 ) -> list:
-    access_token = token_manager.monzo_data.access_token
+    retries = 0
     account_id = token_manager.monzo_data.account_id
-    headers = {"Authorization": f"Bearer {access_token}"}
-    params = {"account_id": account_id, "since": datetime_info}
-    response = requests.get(
-        f"{MONZO_API_URL}/{MONZO_API_TRANSACTION_ENDPOINT}", headers=headers, params=params
-    )
-    if response.status_code != 200:
-        raise Exception(
-            f"Unable to query endpoint, getting: {response.status_code} \n{response.text}"
+    
+    while retries < 3:
+        access_token = token_manager.monzo_data.access_token
+        headers = {"Authorization": f"Bearer {access_token}"}
+        params = {"account_id": account_id, "since": datetime_info}
+        response = requests.get(
+            f"{MONZO_API_URL}/{MONZO_API_TRANSACTION_ENDPOINT}", headers=headers, params=params
         )
+        if response.status_code != 200:
+            token_manager.monzo_auth.refresh_access()
+            retries += 1
+            print(response, response.status_code)
+        else:
+            data: dict = response.json()
+            if len(data.keys()) > 0:
+                return data["transactions"]
+            else:
+                return []
+            
+    raise Exception(
+        f"Unable to query endpoint."
+    )
 
-    data: dict = response.json()
-    if len(data.keys()) > 0:
-        return data["transactions"]
-    else:
-        return []
+
 
 
 def serialize_and_write(transactions: list, path: str):
