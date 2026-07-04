@@ -89,8 +89,8 @@ def update_with_latest_trades(path: str):
     token_manager = TokenManager(TOKEN_FILE)
     transactions = get_transactions_after(token_manager, datetime_from)
     while len(transactions) > 0:
-        datetime_from = plus_one_second(get_latest_date(path))
         serialize_and_write(transactions, path)
+        datetime_from = plus_one_second(get_latest_date(path))
         transactions = get_transactions_after(token_manager, datetime_from)
 
 
